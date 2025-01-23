@@ -13,8 +13,7 @@ async function vaultTVL(api) {
   try {
     const vaults = (await fetchURL(vaultsUrl))?.data?.data;
     for (const vault of vaults) {
-      if (vault?.vaultType === "KriyaClmm" ) continue;
-      if (vault?.vaultType === "CetusClmm") {
+      if (vault?.vaultType === "KriyaClmm" || vault?.vaultType === "CetusClmm") {
         const tokenX = Number(vault?.info?.tokenXAmount) * 10 ** Number(vault?.info?.pool?.tokenXDecimals);
         const tokenY = Number(vault?.info?.tokenYAmount) * 10 ** Number(vault?.info?.pool?.tokenYDecimals);
         api.add(vault?.info?.pool?.tokenXType, tokenX);
@@ -36,13 +35,18 @@ async function staking(api) {
   api.add(KDX_TYPE, totalStaked);
 }
 
+async function vaultsTVL(api) {
+  await vaultTVL(api);
+  await staking(api);
+}
+
 module.exports = {
   timetravel: true,
   misrepresentedTokens: false,
   methodology:
     "Collets all the TVL from the KriyaDEX vaults. The TVL is denominated in USD.",
   sui: {
-    tvl: vaultTVL,
-    staking,
+    tvl: vaultsTVL,
+    staking: staking,
   },
 };
